@@ -22,6 +22,8 @@ $ go build -o embed-markdown github.com/ledyba/embed-markdown/...
 $ ./embed-markdown -port=8080
 ```
 
+You can daemonize this process by systemd, upstart, [supervisord](http://supervisord.org/), etc, etc...
+
 ## Client
 
 ```html
