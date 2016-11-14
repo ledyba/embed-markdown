@@ -1,0 +1,34 @@
+# EmbedMarkdown
+
+A very simple webapps to embed remote markdown files into your blogs/websites.
+
+# Example
+
+It's used to embed novels hosted in github into [our website](https://hexe.net/).
+
+For example:
+ - [白い狐と黒い猫 (妖精⊸ロケット)](https://hexe.net/2016/11/03222719.php)
+ This story is hosted on [github](https://github.com/YorabaTaiju/WhiteFoxAndBlackCat).
+
+# How to use
+
+## Server
+
+- golang
+```bash
+$ go get -u "github.com/russross/blackfriday"
+$ go get -u "github.com/microcosm-cc/bluemonday"
+$ go build -o embed-markdown github.com/ledyba/embed-markdown/...
+$ ./embed-markdown -port=8080
+```
+
+## Client
+
+```html
+<body>
+...
+Please enjoy the story:
+
+<script src="https://ledyba.org/EmbedMarkdown/?https://raw.githubusercontent.com/YorabaTaiju/WhiteFoxAndBlackCat/master/README.md"></script>
+</boby>
+```
