@@ -29,6 +29,9 @@ $ ./embed-markdown -port=8080
 ...
 Please enjoy the story:
 
+<script src="https://<server-location>?<file-to-embed>"></script>
+
+e.g.)
 <script src="https://ledyba.org/EmbedMarkdown/?https://raw.githubusercontent.com/YorabaTaiju/WhiteFoxAndBlackCat/master/README.md"></script>
 </boby>
 ```
