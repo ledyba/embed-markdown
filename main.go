@@ -18,13 +18,47 @@ import (
 
 // Item ...
 type Item struct {
+	url       string
 	html      string
 	updatedAt time.Time
 }
 
 var cache map[string]*Item
 var queue []*Item
-var cacheMutex = new(sync.Mutex)
+var cacheMutex *sync.Mutex
+
+func cacheCleanUp() {
+	log.Info("Cache cleanup...")
+	cacheMutex.Lock()
+	defer cacheMutex.Unlock()
+	idx := 0
+	now := time.Now()
+	total := len(queue)
+	for ; idx < len(queue); idx++ {
+		delta := now.Sub(queue[idx].updatedAt)
+		if delta.Minutes() < 20 {
+			break
+		}
+		delete(cache, queue[idx].url)
+		log.Infof("Cache delete: %s", queue[idx].url)
+	}
+	queue = queue[idx:]
+	if idx > 0 {
+		log.Infof("Delete: %d entries (from %d entries)", idx, total)
+	}
+	if len(queue) != len(cache) {
+		log.Fatalf("Cache inconsistent: %d(queue) vs %d(cache)", len(queue), len(cache))
+	}
+}
+
+func cacheAdd(item *Item) {
+	// Update cache
+	cacheMutex.Lock()
+	defer cacheMutex.Unlock()
+	cache[item.url] = item
+	queue = append(queue, item)
+	log.Info("Cache added: %s", item.url)
+}
 
 func fetchURL(url string) (string, error) {
 	if item, ok := cache[url]; ok {
@@ -42,15 +76,11 @@ func fetchURL(url string) (string, error) {
 	}
 	unsafe := blackfriday.MarkdownCommon(body)
 	html := string(bluemonday.UGCPolicy().SanitizeBytes(unsafe))
-	item := &Item{
+	cacheAdd(&Item{
+		url:       url,
 		html:      html,
 		updatedAt: time.Now(),
-	}
-	// Update cache
-	cacheMutex.Lock()
-	defer cacheMutex.Unlock()
-	cache[url] = item
-	queue = append(queue, item)
+	})
 	return html, nil
 }
 
@@ -88,7 +118,7 @@ var port = flag.Int("port", 8080, "")
 func startCacheDeleter() {
 	c := make(chan bool)
 	go func() {
-		t := time.NewTicker(5 * time.Second)
+		t := time.NewTicker(10 * time.Minute)
 	END:
 		for {
 			select {
@@ -97,18 +127,7 @@ func startCacheDeleter() {
 					break END
 				}
 			case <-t.C:
-				cacheMutex.Lock()
-				defer cacheMutex.Unlock()
-				idx := 0
-				now := time.Now()
-				for ; idx < len(queue); idx++ {
-					delta := now.Sub(queue[idx].updatedAt)
-					if delta.Minutes() < 20 {
-						break
-					}
-					delete(cache, queue[idx].html)
-				}
-				queue = queue[idx:]
+				cacheCleanUp()
 			}
 		}
 		t.Stop()
@@ -119,6 +138,8 @@ func main() {
 	flag.Parse() // Scan the arguments list
 	cache = make(map[string]*Item)
 	queue = make([]*Item, 0)
+	cacheMutex = new(sync.Mutex)
+	startCacheDeleter()
 	http.HandleFunc("/", handler)
 	log.Printf("Start at http://localhost:%d/", *port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *port), nil))
