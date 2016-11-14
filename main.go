@@ -110,6 +110,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(200)
+	w.Header().Set("Content-Type", "application/javascript")
 	fmt.Fprint(w, encode(body))
 }
 
