@@ -57,7 +57,7 @@ func cacheAdd(item *Item) {
 	defer cacheMutex.Unlock()
 	cache[item.url] = item
 	queue = append(queue, item)
-	log.Info("Cache added: %s", item.url)
+	log.Infof("Cache added: %s", item.url)
 }
 
 func fetchURL(url string) (string, error) {
@@ -109,8 +109,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, encode(err.Error()))
 		return
 	}
+	w.Header().Set("Content-Type", "application/javascript; charset=utf-8")
 	w.WriteHeader(200)
-	w.Header().Set("Content-Type", "application/javascript")
 	fmt.Fprint(w, encode(body))
 }
 
