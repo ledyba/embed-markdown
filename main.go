@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"time"
 
 	"sync"
@@ -84,7 +85,7 @@ func fetchURL(url string) (string, error) {
 	return html, nil
 }
 
-func encode(src string) string {
+func encode(src string, async bool, id string) string {
 	encoded, err := json.Marshal(src)
 	body := ""
 	if err != nil {
@@ -92,26 +93,39 @@ func encode(src string) string {
 		body = err.Error()
 	}
 	body = string(encoded)
-	return fmt.Sprintf("document.write(%s);", body)
+	switch async {
+	case true:
+		return fmt.Sprintf("document.getElementById('%s').innerHTML = (%s);", id, body)
+	default:
+		return fmt.Sprintf("document.write(%s);", body)
+	}
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
+	paths := strings.Split(r.URL.Path, "/")
+	async := false
+	id := ""
+	if len(paths) >= 2 && paths[len(paths)-2] == "async" {
+		async = true
+		id = paths[len(paths)-1]
+	}
 	url := r.URL.RawQuery
 	if url == "" {
 		w.WriteHeader(404)
 		fmt.Fprintf(w, "please specify url.")
 		return
 	}
-	log.Infof("URL: %s", url)
+	log.Infof("Path: %s / Query: %s", r.URL.Path, r.URL.RawQuery)
+	log.Infof(" -> URL: %s", url)
 	body, err := fetchURL(url)
 	if err != nil {
 		w.WriteHeader(500)
-		fmt.Fprint(w, encode(err.Error()))
+		fmt.Fprint(w, encode(err.Error(), async, id))
 		return
 	}
 	w.Header().Set("Content-Type", "application/javascript; charset=utf-8")
 	w.WriteHeader(200)
-	fmt.Fprint(w, encode(body))
+	fmt.Fprint(w, encode(body, async, id))
 }
 
 var port = flag.Int("port", 8080, "")
@@ -141,7 +155,7 @@ func main() {
 	queue = make([]*Item, 0)
 	cacheMutex = new(sync.Mutex)
 	startCacheDeleter()
-	http.HandleFunc("/", handler)
+	http.Handle("/", http.StripPrefix("/", http.HandlerFunc(handler)))
 	log.Printf("Start at http://localhost:%d/", *port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *port), nil))
 }

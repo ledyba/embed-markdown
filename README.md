@@ -26,6 +26,8 @@ You can daemonize this process by systemd, upstart, [supervisord](http://supervi
 
 ## Client
 
+### without async
+
 ```html
 <body>
 ...
@@ -35,5 +37,21 @@ Please enjoy the story:
 
 e.g.)
 <script src="https://ledyba.org/EmbedMarkdown/?https://raw.githubusercontent.com/YorabaTaiju/WhiteFoxAndBlackCat/master/README.md"></script>
+</boby>
+```
+
+### async
+
+```html
+<body>
+...
+Please enjoy the story:
+
+<div id="<elem-id>"></div>
+<script async src="https://<server-location>/async/<elem-id>?<file-to-embed>"></script>
+
+e.g.)
+<div id="Ewm1yvGPjp"></div>
+<script src="https://ledyba.org/EmbedMarkdown/async/Ewm1yvGPjp?https://raw.githubusercontent.com/YorabaTaiju/WhiteFoxAndBlackCat/master/README.md"></script>
 </boby>
 ```
