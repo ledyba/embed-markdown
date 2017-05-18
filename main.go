@@ -24,45 +24,69 @@ type Item struct {
 	updatedAt time.Time
 }
 
-var cache map[string]*Item
-var queue []*Item
-var cacheMutex *sync.Mutex
+// Cache ...
+type Cache struct {
+	entries map[string]*Item
+	queue   []*Item
+	mutex   *sync.Mutex
+}
 
-func cacheCleanUp() {
+func newCache() *Cache {
+	entries := make(map[string]*Item)
+	queue := make([]*Item, 0)
+	mutex := new(sync.Mutex)
+	return &Cache{
+		entries: entries,
+		queue:   queue,
+		mutex:   mutex,
+	}
+}
+
+var cache *Cache
+var lifeTime = flag.Int("lifetime", 20, "cache lifetime.")
+
+func (cache *Cache) cleanUp(lifetime float64) {
 	log.Info("Cache cleanup...")
-	cacheMutex.Lock()
-	defer cacheMutex.Unlock()
+	cache.mutex.Lock()
+	defer cache.mutex.Unlock()
 	idx := 0
 	now := time.Now()
-	total := len(queue)
-	for ; idx < len(queue); idx++ {
-		delta := now.Sub(queue[idx].updatedAt)
-		if delta.Minutes() < 20 {
+	total := len(cache.queue)
+	for ; idx < len(cache.queue); idx++ {
+		delta := now.Sub(cache.queue[idx].updatedAt)
+		if delta.Minutes() < lifetime {
 			break
 		}
-		delete(cache, queue[idx].url)
-		log.Infof("Cache delete: %s", queue[idx].url)
+		delete(cache.entries, cache.queue[idx].url)
+		log.Infof("Cache delete: %s", cache.queue[idx].url)
 	}
-	queue = queue[idx:]
+	cache.queue = cache.queue[idx:]
 	if idx > 0 {
 		log.Infof("Delete: %d entries (from %d entries)", idx, total)
 	}
-	if len(queue) != len(cache) {
-		log.Fatalf("Cache inconsistent: %d(queue) vs %d(cache)", len(queue), len(cache))
+	if len(cache.queue) != len(cache.entries) {
+		log.Fatalf("Cache inconsistent: %d(queue) vs %d(entries)", len(cache.queue), len(cache.entries))
 	}
 }
 
-func cacheAdd(item *Item) {
+func (cache *Cache) add(item *Item) {
 	// Update cache
-	cacheMutex.Lock()
-	defer cacheMutex.Unlock()
-	cache[item.url] = item
-	queue = append(queue, item)
+	cache.mutex.Lock()
+	defer cache.mutex.Unlock()
+	cache.entries[item.url] = item
+	cache.queue = append(cache.queue, item)
 	log.Infof("Cache added: %s", item.url)
 }
 
+func (cache *Cache) find(url string) (*Item, bool) {
+	cache.mutex.Lock()
+	defer cache.mutex.Unlock()
+	item, ok := cache.entries[url]
+	return item, ok
+}
+
 func fetchURL(url string) (string, error) {
-	if item, ok := cache[url]; ok {
+	if item, ok := cache.find(url); ok {
 		return item.html, nil
 	}
 	log.Infof("Cache not found: %s", url)
@@ -77,7 +101,7 @@ func fetchURL(url string) (string, error) {
 	}
 	unsafe := blackfriday.MarkdownCommon(body)
 	html := string(bluemonday.UGCPolicy().SanitizeBytes(unsafe))
-	cacheAdd(&Item{
+	cache.add(&Item{
 		url:       url,
 		html:      html,
 		updatedAt: time.Now(),
@@ -142,7 +166,7 @@ func startCacheDeleter() {
 					break END
 				}
 			case <-t.C:
-				cacheCleanUp()
+				cache.cleanUp(float64(*lifeTime))
 			}
 		}
 		t.Stop()
@@ -151,9 +175,7 @@ func startCacheDeleter() {
 
 func main() {
 	flag.Parse() // Scan the arguments list
-	cache = make(map[string]*Item)
-	queue = make([]*Item, 0)
-	cacheMutex = new(sync.Mutex)
+	cache = newCache()
 	startCacheDeleter()
 	http.Handle("/", http.StripPrefix("/", http.HandlerFunc(handler)))
 	log.Printf("Start at http://localhost:%d/", *port)
