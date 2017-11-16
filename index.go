@@ -46,9 +46,9 @@ func index(w http.ResponseWriter, r *http.Request) {
 				<pre class="language-html" id="out"></pre>
 				<div id="msg"></div>
 			</div>
-			<h1 class="header">Fork me on github</h1>
+			<h2 class="header">Fork me on github</h2>
 			<a href="https://github.com/ledyba/embed-markdown">https://github.com/ledyba/embed-markdown</a>
-			<h1 class="header">Current Cache</h1>
+			<h2 class="header">Current Cache</h2>
 			<pre id="cache-info"></pre>
 			<script src="?cache-info"></script>
 		</div>
