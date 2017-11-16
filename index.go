@@ -1,9 +1,26 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 )
+
+func cacheInfo(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/javascript; charset=utf-8")
+	id := "cache-info"
+	str := (func() string {
+		cache.mutex.Lock()
+		defer cache.mutex.Unlock()
+		buff := fmt.Sprintf("%d entries:\n", len(cache.entries))
+		for _, it := range cache.entries {
+			buff += fmt.Sprintf("[%v] %s\n", it.updatedAt, it.url)
+		}
+		return buff
+	})()
+	body, _ := json.Marshal(str)
+	fmt.Fprintf(w, "document.getElementById('%s').innerHTML = (%s);", id, string(body))
+}
 
 func index(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, `
@@ -21,17 +38,18 @@ func index(w http.ResponseWriter, r *http.Request) {
 	<body>
 		<div class="container">
 			<h1 class="header">Embed Markdown</h1>
-			<div style="font-size: x-large;">
 			Markdown URL to embed:<input type="text" id="url"><br>
 			<span id="sync-button" class="btn-large waves-effect waves-light orange">sync</span>&nbsp;
 			<span id="async-button" class="btn-large waves-effect waves-light orange">async</span>
-			</div>
 			<div id="src" style="display: none;">
-			<pre class="language-html" id="out"></pre>
-			<div id="msg"></id>
+				<pre class="language-html" id="out"></pre>
+				<div id="msg"></div>
 			</div>
-			<h1>Fork me on github</h1>
+			<h1 class="header">Fork me on github</h1>
 			<a href="https://github.com/ledyba/embed-markdown">https://github.com/ledyba/embed-markdown</a>
+			<h1 class="header">Current Cache</h1>
+			<pre id="cache-info"></pre>
+			<script src="?cache-info"></script>
 		</div>
 		<script async>
 		// <--

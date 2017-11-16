@@ -127,7 +127,11 @@ func encode(src string, async bool, id string) string {
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "" {
-		index(w, r)
+		if r.URL.RawQuery == "" {
+			index(w, r)
+		} else if r.URL.RawQuery == "cache-info" {
+			cacheInfo(w, r)
+		}
 		return
 	}
 	paths := strings.Split(r.URL.Path, "/")
