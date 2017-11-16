@@ -126,6 +126,10 @@ func encode(src string, async bool, id string) string {
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path == "" {
+		index(w, r)
+		return
+	}
 	paths := strings.Split(r.URL.Path, "/")
 	async := false
 	id := ""
