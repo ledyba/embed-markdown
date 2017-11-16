@@ -12,6 +12,10 @@ Examples:
  - [インターネットの青い鳥 (妖精⊸ロケット)](https://hexe.net/2017/02/03161419.php) - [github](https://github.com/FairyRockets/Texts/blob/master/blue-bird-in-the-21st-century.md).
  - [キツネとタヌキ (妖精⊸ロケット)](https://hexe.net/2017/06/14220352.php) - [github](https://github.com/FairyRockets/Texts/blob/master/kitsune-to-tanuki.md).
 
+# Frontend
+
+![](./screenshot.jpg)
+
 # How to use
 
 ## Server
