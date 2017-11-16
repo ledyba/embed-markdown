@@ -9,12 +9,13 @@ import (
 func cacheInfo(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/javascript; charset=utf-8")
 	id := "cache-info"
+	const layout = "2006/01/02 15:04:05"
 	str := (func() string {
 		cache.mutex.Lock()
 		defer cache.mutex.Unlock()
 		buff := fmt.Sprintf("%d entries:\n", len(cache.entries))
 		for _, it := range cache.entries {
-			buff += fmt.Sprintf("[%v] %s\n", it.updatedAt, it.url)
+			buff += fmt.Sprintf("[%s] %s\n", it.updatedAt.Format(layout), it.url)
 		}
 		return buff
 	})()
