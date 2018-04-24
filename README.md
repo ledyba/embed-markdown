@@ -7,10 +7,10 @@ A very simple webapps to embed remote markdown files into your blogs/websites.
 It's used to embed novels hosted in github into [our website](https://hexe.net/).
 
 Examples:
- - [白い狐と黒い猫 (妖精⊸ロケット)](https://hexe.net/2016/11/03222719.php)
+ - [白い狐と黒い猫 (妖精⊸ロケット)](https://hexe.net/2016/11/03/22:27:19/)
  This story is hosted on [github](https://github.com/YorabaTaiju/WhiteFoxAndBlackCat).
- - [インターネットの青い鳥 (妖精⊸ロケット)](https://hexe.net/2017/02/03161419.php) - [github](https://github.com/FairyRockets/Texts/blob/master/blue-bird-in-the-21st-century.md).
- - [キツネとタヌキ (妖精⊸ロケット)](https://hexe.net/2017/06/14220352.php) - [github](https://github.com/FairyRockets/Texts/blob/master/kitsune-to-tanuki.md).
+ - [インターネットの青い鳥 (妖精⊸ロケット)](https://hexe.net/2017/02/03/16:14:19/) - [github](https://github.com/FairyRockets/Texts/blob/master/blue-bird-in-the-21st-century.md).
+ - [キツネとタヌキ (妖精⊸ロケット)](https://hexe.net/2017/06/14/22:03:52/) - [github](https://github.com/FairyRockets/Texts/blob/master/kitsune-to-tanuki.md).
 
 # Frontend
 
