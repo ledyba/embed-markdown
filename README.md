@@ -24,7 +24,7 @@ Examples:
 ```bash
 $ go get -u "github.com/russross/blackfriday"
 $ go get -u "github.com/microcosm-cc/bluemonday"
-$ go build -o embed-markdown github.com/ledyba/embed-markdown/...
+$ go build -o embed-markdown "github.com/ledyba/embed-markdown"
 $ ./embed-markdown -port=8080
 ```
 
